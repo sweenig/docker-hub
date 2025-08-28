@@ -34,7 +34,7 @@
     }
   },
   "services": {
-"cadvisor": {
+    "cadvisor": {
       "name": "Google cAdvisor",
       "description": "Container Advisor - Resource monitoring and performance analysis.",
       "icon": "📊",
@@ -56,6 +56,12 @@
       "name": "transmission",
       "description": "Test - Transmission BitTorrent Client",
       "icon": "📈",
+      "category": "Tools"
+    },
+    "open-webui": {
+      "name": "open-webui",
+      "description": "Ollama AI Server",
+      "icon": "🖥️",
       "category": "Tools"
     }
   },
