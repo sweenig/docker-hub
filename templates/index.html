@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="header">
+                <h1>🚀 {{ app_title }}</h1>
+            </div>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number">{{ services|length }}</div>
+                    <div class="stat-label">Active Services</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ categories|length }}</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ containers|length if containers else 0 }}</div>
+                    <div class="stat-label">Total Containers</div>
+                </div>
+            </div>
+
+            <button class="settings-btn" onclick="openSettingsDialog()" title="Settings">
+                ⚙️
+            </button>
+        </div>
+
+        <div class="main-content">
+
+            {% if categories %}
+                <div class="categories">
+                    {% for category in category_order %}
+                        {% set category_services = categories.get(category, []) %}
+                        <div class="category">
+                            <div class="category-header">
+                                <div class="category-icon">
+                                    {% if category in category_config %}
+                                        {{ category_config[category].icon }}
+                                    {% else %}
+                                        🐳
+                                    {% endif %}
+                                </div>
+                                <div class="category-title">{{ category }}</div>
+                            </div>
+                            
+                            <div class="services-grid">
+                                {% for service in category_services %}
+                                    <div class="service-card" onclick="window.open('{{ service.url }}', '_blank')">
+                                        <div class="service-left">
+                                            <div class="service-icon">{{ service.icon }}</div>
+                                            <div class="service-info">
+                                                <div class="service-name">
+                                                    {{ service.name }}
+                                                    {% if service.uncategorized %}
+                                                        <span class="uncategorized-label">&mdash; <a href="#" onclick="openSettingsDialog();return false;">Categorize this service in settings</a></span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="service-description">{{ service.description }}</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="service-details">
+                                            <div class="service-status">
+                                                <span class="status-indicator"></span>
+                                                {{ service.status }}
+                                            </div>
+                                            <span>Port: {{ service.host_port }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-services">
+                    <h3>No services found</h3>
+                    <p>No Docker containers with exposed ports are currently running.</p>
+                </div>
+            {% endif %}
+
+            {% if other_services %}
+                <div class="category other-services">
+                    <div class="category-header">
+                        <div class="category-icon">🔧</div>
+                        <div class="category-title">Other Services</div>
+                    </div>
+                    
+                    <div class="services-grid">
+                        {% for service in other_services %}
+                            <div class="service-card" onclick="window.open('{{ service.url }}', '_blank')">
+                                <div class="service-left">
+                                    <div class="service-icon">{{ service.icon }}</div>
+                                    <div class="service-info">
+                                        <div class="service-name">{{ service.name }}</div>
+                                        <div class="service-description">{{ service.description }}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="service-details">
+                                    <div class="service-status">
+                                        <span class="status-indicator"></span>
+                                        {{ service.status }}
+                                    </div>
+                                    <span>Port: {{ service.host_port }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeSettingsDialog()">&times;</span>
+            <h2>Settings</h2>
+            <div id="settings-tabs">
+                <button onclick="showTab('services')">Services</button>
+                <button onclick="showTab('categories')">Categories</button>
+            </div>
+            <div id="settings-services" class="settings-tab">
+                <h3>Services</h3>
+                <button class="add-button" onclick="showServiceForm()" title="Add Service">
+                    <span class="add-icon">+</span>
+                </button>
+                <div id="service-form" style="display:none;"></div>
+                <div id="services-list"></div>
+            </div>
+            <div id="settings-categories" class="settings-tab" style="display:none;">
+                <h3>Categories</h3>
+                <button class="add-button" onclick="showCategoryForm()" title="Add Category">
+                    <span class="add-icon">+</span>
+                </button>
+                <div id="category-form" style="display:none;"></div>
+                <div id="categories-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
+</html>

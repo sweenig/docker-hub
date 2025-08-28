@@ -1,0 +1,102 @@
+{
+  "categories": {
+    "Monitoring": {
+      "name": "Monitoring - Et Al",
+      "icon": "📊"
+    },
+    "Development": {
+      "icon": "🛠️",
+      "name": "Development"
+    },
+    "Version Control": {
+      "icon": "📚",
+      "name": "Version Control"
+    },
+    "Logging": {
+      "icon": "📝",
+      "name": "Logging"
+    },
+    "Management": {
+      "icon": "🚀",
+      "name": "Management"
+    },
+    "Tools": {
+      "icon": "🔨",
+      "name": "Tools"
+    },
+    "Other": {
+      "icon": "🐳",
+      "name": "Other"
+    },
+    "Testing": {
+      "name": "Testing",
+      "icon": "⁉️"
+    }
+  },
+  "services": {
+    "cadvisor": {
+      "name": "Google cAdvisor",
+      "description": "Container Advisor - Resource monitoring and performance analysis.",
+      "icon": "📊",
+      "category": "Management"
+    },
+    "it-tools": {
+      "name": "IT Tools",
+      "description": "Collection of useful IT tools and utilities",
+      "icon": "🛠️",
+      "category": "Development"
+    },
+    "fluentd": {
+      "name": "Fluentd",
+      "description": "Log aggregation and forwarding",
+      "icon": "📝",
+      "category": "Management"
+    },
+    "flask-hub": {
+      "name": "Docker Hub",
+      "description": "Docker Services Hub - This application",
+      "icon": "🚀",
+      "category": "Management"
+    },
+    "quoteautomation-backend-1": {
+      "name": "Quote Automation API",
+      "description": "Hosts the API for the Quote Automation tool",
+      "icon": "💰",
+      "category": "Tools"
+    },
+    "quoteautomation-frontend-1": {
+      "name": "Quote Automation",
+      "description": "Hosts the Quote Automation tool",
+      "icon": "💰",
+      "category": "Tools"
+    },
+    "collector_installer": {
+      "name": "LM Collector Installer",
+      "description": "Provides reinstallation commands for LogicMonitor Collectors",
+      "icon": "📈",
+      "category": "Monitoring"
+    },
+    "transmission": {
+      "name": "transmission",
+      "description": "Test - Transmission BitTorrent Client",
+      "icon": "📈",
+      "category": "Testing"
+    }
+  },
+  "defaults": {
+    "name": "Docker service",
+    "description": "Docker service",
+    "icon": "🐳",
+    "category": "Other"
+  },
+  "categoryOrder": [
+    "Development",
+    "Logging",
+    "Monitoring",
+    "Other",
+    "Testing",
+    "Tools",
+    "Version Control",
+    "Management"
+  ]
+}
