@@ -1,0 +1,14 @@
+services:
+  flask-hub:
+    build: .
+    container_name: flask-hub
+    ports:
+      - "80:5000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - .:/app
+    environment:
+      - FLASK_ENV=production
+      - APPTITLE=LM-PROD-VM-09
+      # - EXCLUDED_SERVICES=fluentd,transmission:51413,git
+    restart: unless-stopped
