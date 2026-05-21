@@ -15,6 +15,14 @@
     "Work": {
       "name": "Work",
       "icon": "🏢"
+    },
+    "3D Printing": {
+      "name": "3D Printing",
+      "icon": "🖨️"
+    },
+    "Bittorrent": {
+      "name": "Bittorrent",
+      "icon": "🌩️"
     }
   },
   "services": {
@@ -40,7 +48,7 @@
       "name": "Transmission",
       "description": "Test - Transmission BitTorrent Client",
       "icon": "📥",
-      "category": "Tools"
+      "category": "Bittorrent"
     },
     "open-webui": {
       "name": "open-webui",
@@ -52,7 +60,7 @@
       "name": "Resilio Sync",
       "description": "Resilio Sync",
       "icon": "🔄",
-      "category": "Tools"
+      "category": "Bittorrent"
     },
     "LM Manage": {
       "name": "LM Manage",
@@ -70,7 +78,7 @@
       "name": "Bambu Timelapse Downloader",
       "description": "",
       "icon": "🖨️",
-      "category": "Tools"
+      "category": "3D Printing"
     },
     "discdb-web-1": {
       "name": "Disc DB",
@@ -95,6 +103,24 @@
       "description": "",
       "icon": "🐳",
       "category": "Work"
+    },
+    "timelapse_downloader-nginx-1": {
+      "name": "Download Web Service",
+      "description": "",
+      "icon": "⬇️",
+      "category": "3D Printing"
+    },
+    "file_server-nginx-1": {
+      "name": "Transmission File Server",
+      "description": "",
+      "icon": "⬇️",
+      "category": "Bittorrent"
+    },
+    "timelapse_downloader-youtube-1": {
+      "name": "TimelapseTube",
+      "description": "",
+      "icon": "📽️",
+      "category": "3D Printing"
     }
   },
   "defaults": {
@@ -107,6 +133,8 @@
     "Tools",
     "Work",
     "Management",
+    "3D Printing",
+    "Bittorrent",
     "Other"
   ],
   "excludedServices": [

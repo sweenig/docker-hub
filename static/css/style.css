@@ -649,9 +649,21 @@ body {
     .service-details {
         margin: 0;
         width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
         justify-content: space-between;
     }
     
+    .service-status {
+        flex: 1;
+        min-width: 150px;
+    }
+    
+    .edit-service-btn {
+        flex-shrink: 0;
+    }
 
 }
 
