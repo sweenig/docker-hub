@@ -52,7 +52,7 @@
                             
                             <div class="services-grid">
                                 {% for service in category_services %}
-                                    <div class="service-card" onclick="window.open('{{ service.url }}', '_blank')">
+                                    <div class="service-card" onclick="onServiceCardClick(event, '{{ service.url }}')">
                                         <div class="service-left">
                                             <div class="service-icon">{{ service.icon }}</div>
                                             <div class="service-info">
@@ -72,6 +72,7 @@
                                                 {{ service.status }}
                                             </div>
                                             <span>Port: {{ service.host_port }}</span>
+                                            <button class="edit-service-btn" data-service='{{ service|tojson }}' onclick='openEditServiceModalFromDataset(event, this)' title="Edit service">✎</button>
                                         </div>
                                     </div>
                                 {% endfor %}
@@ -95,7 +96,7 @@
                     
                     <div class="services-grid">
                         {% for service in other_services %}
-                            <div class="service-card" onclick="window.open('{{ service.url }}', '_blank')">
+                            <div class="service-card" onclick="onServiceCardClick(event, '{{ service.url }}')">
                                 <div class="service-left">
                                     <div class="service-icon">{{ service.icon }}</div>
                                     <div class="service-info">
@@ -104,12 +105,13 @@
                                     </div>
                                 </div>
                                 
-                                <div class="service-details">
+                                    <div class="service-details">
                                     <div class="service-status">
                                         <span class="status-indicator"></span>
                                         {{ service.status }}
                                     </div>
                                     <span>Port: {{ service.host_port }}</span>
+                                    <button class="edit-service-btn" data-service='{{ service|tojson }}' onclick='openEditServiceModalFromDataset(event, this)' title="Edit service">✎</button>
                                 </div>
                             </div>
                         {% endfor %}
@@ -126,18 +128,10 @@
             <span class="close" onclick="closeSettingsDialog()">&times;</span>
             <h2>Settings</h2>
             <div id="settings-tabs">
-                <button onclick="showTab('services')">Services</button>
+                <button onclick="showTab('general')">General</button>
                 <button onclick="showTab('categories')">Categories</button>
             </div>
-            <div id="settings-services" class="settings-tab">
-                <h3>Services</h3>
-                <button class="add-button" onclick="showServiceForm()" title="Add Service">
-                    <span class="add-icon">+</span>
-                </button>
-                <div id="service-form" style="display:none;"></div>
-                <div id="services-list"></div>
-            </div>
-            <div id="settings-categories" class="settings-tab" style="display:none;">
+            <div id="settings-categories" class="settings-tab">
                 <h3>Categories</h3>
                 <button class="add-button" onclick="showCategoryForm()" title="Add Category">
                     <span class="add-icon">+</span>
@@ -145,6 +139,24 @@
                 <div id="category-form" style="display:none;"></div>
                 <div id="categories-list"></div>
             </div>
+            <div id="settings-general" class="settings-tab" style="display:none;">
+                <h3>General</h3>
+                <div id="general-form">
+                    <label>App Title: <input id="appTitleInput" type="text" value=""></label>
+                    <button onclick="submitAppTitle()">Save Title</button>
+                </div>
+                <h4>Excluded Services</h4>
+                <div id="excluded-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Edit Modal -->
+    <div id="serviceModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeServiceDialog()">&times;</span>
+            <h2>Edit Service</h2>
+            <div id="service-form" style="display:none;"></div>
         </div>
     </div>
 

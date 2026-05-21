@@ -122,12 +122,19 @@ def api_get_services():
 def api_add_service():
     config = load_service_config()
     data = request.json
-    name = data.get('name')
-    if not name:
+    data = data or {}
+    display_name = data.get('name')
+    if not display_name:
         return jsonify({'error': 'Service name required'}), 400
-    config['services'][name] = data
+    # Allow client to supply an explicit key (container name) while keeping 'name' as the display name
+    key = data.get('key') or display_name
+    # Copy data to store and remove 'key' to avoid persisting it
+    data_to_store = data.copy()
+    if 'key' in data_to_store:
+        del data_to_store['key']
+    config['services'][key] = data_to_store
     save_service_config(config)
-    return jsonify({'success': True, 'service': data})
+    return jsonify({'success': True, 'service': data_to_store, 'key': key})
 
 @app.route('/api/services/<name>', methods=['PUT'])
 def api_update_service(name):
@@ -199,6 +206,65 @@ def api_update_category_order():
     save_service_config(config)
     return jsonify({'success': True, 'order': order})
 
+
+@app.route('/api/settings', methods=['GET'])
+def api_get_settings():
+    config = load_service_config()
+    settings = config.get('settings', {})
+    excluded = config.get('excludedServices', [])
+    # Normalize excluded to list of strings
+    excluded = excluded if isinstance(excluded, list) else []
+    return jsonify({'settings': settings, 'excludedServices': excluded})
+
+
+@app.route('/api/settings', methods=['PUT'])
+def api_update_settings():
+    config = load_service_config()
+    data = request.json or {}
+    settings = config.get('settings', {})
+    # Update appTitle if provided
+    if 'appTitle' in data:
+        settings['appTitle'] = data.get('appTitle')
+    config['settings'] = settings
+    save_service_config(config)
+    return jsonify({'success': True, 'settings': settings})
+
+
+@app.route('/api/settings/exclude', methods=['POST'])
+def api_add_excluded_service():
+    config = load_service_config()
+    data = request.json or {}
+    name = data.get('name')
+    # Allow client to supply key+port instead of pre-formatted name
+    if not name:
+        key = data.get('key')
+        port = data.get('port')
+        if key and port:
+            name = f"{key}:{port}"
+    if not name:
+        return jsonify({'error': 'Name (or key+port) required'}), 400
+    excluded = config.get('excludedServices', [])
+    if not isinstance(excluded, list):
+        excluded = []
+    if name not in excluded:
+        excluded.append(name)
+    config['excludedServices'] = excluded
+    save_service_config(config)
+    return jsonify({'success': True, 'excludedServices': excluded})
+
+
+@app.route('/api/settings/exclude/<name>', methods=['DELETE'])
+def api_remove_excluded_service(name):
+    config = load_service_config()
+    excluded = config.get('excludedServices', [])
+    if not isinstance(excluded, list):
+        excluded = []
+    if name in excluded:
+        excluded = [n for n in excluded if n != name]
+    config['excludedServices'] = excluded
+    save_service_config(config)
+    return jsonify({'success': True, 'excludedServices': excluded})
+
 def get_service_info(container_name):
     """Get additional service information based on container name"""
     config = load_service_config()
@@ -258,9 +324,17 @@ def index():
         categories[category].append(service)
     
 
-    # Parse EXCLUDED_SERVICES for both container and container:port
-    excluded_services_raw = os.environ.get('EXCLUDED_SERVICES', '').split(',')
-    excluded_services_raw = [name.strip() for name in excluded_services_raw if name.strip()]
+    # Load persisted config early so settings like excluded services and appTitle are available
+    config = load_service_config()
+
+    # Parse EXCLUDED_SERVICES from env and from persisted config (list of names or name:port)
+    excluded_services_raw = []
+    env_excluded = os.environ.get('EXCLUDED_SERVICES', '')
+    if env_excluded:
+        excluded_services_raw.extend([name.strip() for name in env_excluded.split(',') if name.strip()])
+    cfg_excluded = config.get('excludedServices', [])
+    if isinstance(cfg_excluded, list):
+        excluded_services_raw.extend([name for name in cfg_excluded if isinstance(name, str) and name.strip()])
     excluded_containers = set()
     excluded_container_ports = set()
     for item in excluded_services_raw:
@@ -292,7 +366,6 @@ def index():
         categories[category].append(service)
     
     # Load category configuration
-    config = load_service_config()
     category_config = config.get('categories', {})
     # Determine category display order based on persisted order
     configured_order = config.get('categoryOrder', [])
@@ -303,7 +376,8 @@ def index():
         if c not in category_order:
             category_order.append(c)
     
-    app_title = os.environ.get('APPTITLE', 'Docker Services Hub')
+    # Determine app title: env var overrides persisted setting
+    app_title = os.environ.get('APPTITLE') or config.get('settings', {}).get('appTitle') or 'Docker Services Hub'
     return render_template(
         'index.html',
         categories=categories,

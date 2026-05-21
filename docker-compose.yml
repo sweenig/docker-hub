@@ -9,6 +9,4 @@ services:
       - .:/app
     environment:
       - FLASK_ENV=production
-      - APPTITLE=LM-PROD-VM-09
-      # - EXCLUDED_SERVICES=fluentd,transmission:51413,git
     restart: unless-stopped

@@ -2,18 +2,32 @@
 
 function openSettingsDialog() {
     document.getElementById('settingsModal').style.display = 'block';
-    loadServices();
     loadCategories();
-    showTab('services');
+    showTab('general');
 }
 
 function closeSettingsDialog() {
     document.getElementById('settingsModal').style.display = 'none';
 }
 
+function openServiceDialog() {
+    document.getElementById('serviceModal').style.display = 'block';
+}
+
+function closeServiceDialog() {
+    document.getElementById('serviceModal').style.display = 'none';
+}
+
 function showTab(tab) {
-    document.getElementById('settings-services').style.display = (tab === 'services') ? 'block' : 'none';
+    const tabs = document.querySelectorAll('#settings-tabs button');
+    tabs.forEach(button => {
+        button.classList.toggle('active', button.getAttribute('onclick') === `showTab('${tab}')`);
+    });
     document.getElementById('settings-categories').style.display = (tab === 'categories') ? 'block' : 'none';
+    document.getElementById('settings-general').style.display = (tab === 'general') ? 'block' : 'none';
+    if (tab === 'general') {
+        loadSettings();
+    }
 }
 
 // --- Services CRUD ---
@@ -52,15 +66,25 @@ async function getCategoryOptions(selectedCategory = '') {
 }
 
 async function showServiceForm(name = '', svc = {}) {
+    // remember which service is being edited so we can access host_port if needed
+    window.currentEditingService = svc || {};
     const form = document.getElementById('service-form');
     form.style.display = 'block';
     
     // Get category options before building the form
     const categoryOptions = await getCategoryOptions(svc.category || '');
     
+    const keyVal = svc.container_name || name || '';
+    const portVal = svc.host_port || '';
     form.innerHTML = `
         <form onsubmit="submitServiceForm(event, '${name}')">
-            <label>Name: <input name="name" value="${svc.name || name}" required></label><br>
+            <input type="hidden" name="key" value="${keyVal}">
+            <input type="hidden" name="port" value="${portVal}">
+            <div class="service-key">
+                <label>Container key: <input class="key-display" value="${keyVal}" disabled></label>
+                <label class="service-port">Host port: <input class="key-display" value="${portVal}" disabled></label>
+            </div>
+            <label>Display Name: <input name="name" value="${svc.name || ''}" required></label><br>
             <label>Description: <input name="description" value="${svc.description || ''}"></label><br>
             <label>Icon: <input name="icon" value="${svc.icon || ''}"></label><br>
             <label>Category: 
@@ -70,29 +94,111 @@ async function showServiceForm(name = '', svc = {}) {
             </label><br>
             <button type="submit">Save</button>
             <button type="button" onclick="cancelServiceForm()">Cancel</button>
+            <button type="button" class="exclude-button" onclick="excludeServiceFromForm(this)">Exclude</button>
         </form>
     `;
 }
 
+// Load general settings (app title + excluded services)
+function loadSettings() {
+    fetch('/api/settings')
+        .then(res => res.json())
+        .then(data => {
+            const settings = data.settings || {};
+            const excluded = data.excludedServices || [];
+            document.getElementById('appTitleInput').value = settings.appTitle || '';
+            renderExcludedList(excluded);
+        });
+}
+
+function submitAppTitle() {
+    const title = document.getElementById('appTitleInput').value;
+    fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appTitle: title })
+    }).then(() => {
+        alert('App title saved. Reload page to see changes if env not overriding.');
+    });
+}
+
+function renderExcludedList(list) {
+    const container = document.getElementById('excluded-list');
+    container.innerHTML = '';
+    if (!Array.isArray(list) || list.length === 0) {
+        container.textContent = 'No excluded services.';
+        return;
+    }
+    list.forEach(name => {
+        const div = document.createElement('div');
+        div.className = 'settings-item';
+        div.innerHTML = `
+            <span class="item-name">${name}</span>
+            <div class="item-actions">
+                <button onclick="unexcludeService('${name}')" title="Un-exclude">↩</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function unexcludeService(name) {
+    if (!confirm('Un-exclude ' + name + '?')) return;
+    fetch(`/api/settings/exclude/${encodeURIComponent(name)}`, { method: 'DELETE' })
+        .then(() => loadSettings());
+}
+
+function excludeServiceFromForm(btn) {
+    // find the form and key value
+    const form = btn && btn.form ? btn.form : btn.closest && btn.closest('form');
+    if (!form) return;
+    const key = form.key ? form.key.value : '';
+    let port = form.port ? form.port.value : '';
+    // if port not present in the form, try to read it from the current editing service
+    if (!port && window.currentEditingService && window.currentEditingService.host_port) {
+        port = window.currentEditingService.host_port;
+    }
+    if (!key) {
+        alert('No container key available to exclude.');
+        return;
+    }
+    const excludeName = port ? `${key}:${port}` : key;
+    if (!confirm('Exclude ' + excludeName + ' from main view?')) return;
+    fetch('/api/settings/exclude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: excludeName, key: key, port: port })
+    }).then(() => {
+        // refresh excluded list in general tab
+        loadSettings();
+        // provide visual feedback
+        alert('Service excluded.');
+    });
+}
+
 function cancelServiceForm() {
     document.getElementById('service-form').style.display = 'none';
+    window.currentEditingService = null;
+    closeServiceDialog();
 }
 
 function submitServiceForm(e, oldName) {
     e.preventDefault();
     const form = e.target;
+    const displayName = form.name.value;
     const svc = {
-        name: form.name.value,
+        name: displayName,
         description: form.description.value,
         icon: form.icon.value,
         category: form.category.value
     };
+    const keyField = form.key ? form.key.value : '';
     const method = oldName && oldName !== '' ? 'PUT' : 'POST';
     const url = oldName && oldName !== '' ? `/api/services/${encodeURIComponent(oldName)}` : '/api/services';
     fetch(url, {
         method: method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(svc)
+        body: JSON.stringify(keyField && method === 'POST' ? Object.assign({key: keyField}, svc) : svc)
     }).then(() => {
         loadServices();
         cancelServiceForm();
@@ -105,6 +211,38 @@ function editService(name) {
         .then(data => {
             const svc = data.services[name];
             showServiceForm(name, svc);
+        });
+}
+
+// Open edit form for a service from its card
+function openEditServiceModal(event, svc) {
+    if (event && event.stopPropagation) event.stopPropagation();
+    // Open the standalone service edit dialog
+    openServiceDialog();
+    // Fetch persisted services to determine whether to edit (PUT) or create (POST)
+    fetch('/api/services')
+        .then(res => res.json())
+        .then(data => {
+            const services = data.services || {};
+            // Prefer container_name key if available, otherwise display name
+            const key = svc.container_name || svc.name;
+            if (key && services[key]) {
+                const merged = Object.assign({}, svc, services[key]);
+                showServiceForm(key, merged);
+            } else if (svc.name && services[svc.name]) {
+                const merged = Object.assign({}, svc, services[svc.name]);
+                showServiceForm(svc.name, merged);
+            } else {
+                // New service - prefill form with values from the card
+                const prefill = {
+                    container_name: svc.container_name || key || '',
+                    name: svc.name || key || '',
+                    description: svc.description || '',
+                    icon: svc.icon || '',
+                    category: svc.category || ''
+                };
+                showServiceForm('', prefill);
+            }
         });
 }
 
@@ -206,13 +344,24 @@ function deleteCategory(name) {
         .then(() => loadCategories());
 }
 
-// Modal close on outside click
-window.onclick = function(event) {
-    const modal = document.getElementById('settingsModal');
-    if (event.target === modal) {
-        closeSettingsDialog();
+// Modal close on outside click — ignore clicks that follow a text selection
+window.addEventListener('click', function(event) {
+    const settingsModal = document.getElementById('settingsModal');
+    const serviceModal = document.getElementById('serviceModal');
+    const target = event.target;
+    if (target === settingsModal || target === serviceModal) {
+        try {
+            // If the user just made a text selection (drag), don't close the modal
+            if (window.getSelection && window.getSelection().toString().length > 0) {
+                return;
+            }
+        } catch (e) {
+            // ignore selection errors and proceed to close
+        }
+        if (target === settingsModal) closeSettingsDialog();
+        if (target === serviceModal) closeServiceDialog();
     }
-}
+});
 
 // --- Drag and Drop Helpers for Categories ---
 let dragSrcEl = null;

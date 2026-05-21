@@ -1,21 +1,5 @@
 {
   "categories": {
-    "Monitoring": {
-      "name": "Monitoring - Et Al",
-      "icon": "📊"
-    },
-    "Development": {
-      "icon": "🛠️",
-      "name": "Development"
-    },
-    "Version Control": {
-      "icon": "📚",
-      "name": "Version Control"
-    },
-    "Logging": {
-      "icon": "📝",
-      "name": "Logging"
-    },
     "Management": {
       "icon": "🚀",
       "name": "Management"
@@ -28,9 +12,9 @@
       "icon": "🐳",
       "name": "Other"
     },
-    "Testing": {
-      "name": "Testing",
-      "icon": "⁉️"
+    "Work": {
+      "name": "Work",
+      "icon": "🏢"
     }
   },
   "services": {
@@ -53,9 +37,9 @@
       "category": "Management"
     },
     "transmission": {
-      "name": "transmission",
+      "name": "Transmission",
       "description": "Test - Transmission BitTorrent Client",
-      "icon": "📈",
+      "icon": "📥",
       "category": "Tools"
     },
     "open-webui": {
@@ -63,6 +47,54 @@
       "description": "Ollama AI Server",
       "icon": "🖥️",
       "category": "Tools"
+    },
+    "resilio-sync": {
+      "name": "Resilio Sync",
+      "description": "Resilio Sync",
+      "icon": "🔄",
+      "category": "Tools"
+    },
+    "LM Manage": {
+      "name": "LM Manage",
+      "description": "",
+      "icon": "",
+      "category": "Work"
+    },
+    "sweenig_perkan-perkan-1": {
+      "name": "Personal Kanban",
+      "description": "",
+      "icon": "📋",
+      "category": "Tools"
+    },
+    "timelapse_downloader-timelapse-1": {
+      "name": "Bambu Timelapse Downloader",
+      "description": "",
+      "icon": "🖨️",
+      "category": "Tools"
+    },
+    "discdb-web-1": {
+      "name": "Disc DB",
+      "description": "",
+      "icon": "💿",
+      "category": "Tools"
+    },
+    "lm_manage_web": {
+      "name": "LM Manage Web UI",
+      "description": "",
+      "icon": "🐳",
+      "category": "Work"
+    },
+    "lm_manage_adminer": {
+      "name": "MySQL Adminer",
+      "description": "",
+      "icon": "🐳",
+      "category": "Work"
+    },
+    "lm_manage_db": {
+      "name": "Database",
+      "description": "",
+      "icon": "🐳",
+      "category": "Work"
     }
   },
   "defaults": {
@@ -72,13 +104,16 @@
     "category": "Other"
   },
   "categoryOrder": [
-    "Development",
-    "Logging",
-    "Monitoring",
-    "Other",
-    "Testing",
     "Tools",
-    "Version Control",
-    "Management"
-  ]
+    "Work",
+    "Management",
+    "Other"
+  ],
+  "excludedServices": [
+    "resilio-sync:55555",
+    "transmission:51413"
+  ],
+  "settings": {
+    "appTitle": "Server"
+  }
 }
