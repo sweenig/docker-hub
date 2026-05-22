@@ -62,65 +62,11 @@
       "icon": "🔄",
       "category": "Bittorrent"
     },
-    "LM Manage": {
-      "name": "LM Manage",
-      "description": "",
-      "icon": "",
-      "category": "Work"
-    },
-    "sweenig_perkan-perkan-1": {
-      "name": "Personal Kanban",
-      "description": "",
-      "icon": "📋",
-      "category": "Tools"
-    },
-    "timelapse_downloader-timelapse-1": {
-      "name": "Bambu Timelapse Downloader",
-      "description": "",
-      "icon": "🖨️",
-      "category": "3D Printing"
-    },
-    "discdb-web-1": {
-      "name": "Disc DB",
-      "description": "",
-      "icon": "💿",
-      "category": "Tools"
-    },
-    "lm_manage_web": {
-      "name": "LM Manage Web UI",
-      "description": "",
-      "icon": "🐳",
-      "category": "Work"
-    },
-    "lm_manage_adminer": {
-      "name": "MySQL Adminer",
-      "description": "",
-      "icon": "🐳",
-      "category": "Work"
-    },
-    "lm_manage_db": {
-      "name": "Database",
-      "description": "",
-      "icon": "🐳",
-      "category": "Work"
-    },
-    "timelapse_downloader-nginx-1": {
-      "name": "Download Web Service",
-      "description": "",
-      "icon": "⬇️",
-      "category": "3D Printing"
-    },
     "file_server-nginx-1": {
       "name": "Transmission File Server",
       "description": "",
       "icon": "⬇️",
       "category": "Bittorrent"
-    },
-    "timelapse_downloader-youtube-1": {
-      "name": "TimelapseTube",
-      "description": "",
-      "icon": "📽️",
-      "category": "3D Printing"
     }
   },
   "defaults": {

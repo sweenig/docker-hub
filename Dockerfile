@@ -22,8 +22,10 @@ RUN mkdir -p /etc/apt/keyrings && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create necessary directories for the mounted volume
-RUN mkdir -p /app/templates /app/static/css /app/static/js
+# Copy application source into the image
+COPY app.py services.json ./
+COPY templates ./templates
+COPY static ./static
 
 # Create a non-root user for file ownership
 RUN useradd -m -u 1000 flaskuser && chown -R flaskuser:flaskuser /app

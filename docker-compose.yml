@@ -1,12 +1,17 @@
 services:
   flask-hub:
-    build: .
+    # build: .
+    image: sweenig/docker_hub:latest
     container_name: flask-hub
     ports:
       - "80:5000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - .:/app
+      - hub-data:/data
     environment:
       - FLASK_ENV=production
+      - SERVICE_CONFIG_PATH=/data/services.json
     restart: unless-stopped
+
+volumes:
+  hub-data:

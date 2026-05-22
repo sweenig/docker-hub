@@ -8,6 +8,27 @@ from flask import request, jsonify
 
 app = Flask(__name__)
 
+DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'services.json')
+SERVICE_CONFIG_PATH = os.getenv('SERVICE_CONFIG_PATH', DEFAULT_CONFIG_PATH)
+
+
+def _default_service_config():
+    return {
+        "categories": {
+            "Other": {
+                "icon": "🐳",
+                "name": "Other"
+            }
+        },
+        "services": {},
+        "defaults": {
+            "name": "Docker service",
+            "description": "Docker service",
+            "icon": "🐳",
+            "category": "Other"
+        }
+    }
+
 # Add custom Jinja2 filter for contains test
 @app.template_filter('contains')
 def contains_filter(value, substring):
@@ -69,47 +90,37 @@ def extract_ports(ports_str):
 def load_service_config():
     """Load service configuration from JSON file"""
     try:
-        with open('services.json', 'r', encoding='utf-8') as f:
+        with open(SERVICE_CONFIG_PATH, 'r', encoding='utf-8') as f:
             config = json.load(f)
         return config
     except FileNotFoundError:
-        print("Warning: services.json not found, using default configuration")
-        return {
-            "categories": {
-                "Other": {
-                    "icon": "🐳",
-                    "name": "Other"
-                }
-            },
-            "services": {},
-            "defaults": {
-                "name": "Docker service",
-                "description": "Docker service", 
-                "icon": "🐳",
-                "category": "Other"
-            }
-        }
+        print(f"Warning: {SERVICE_CONFIG_PATH} not found, initializing configuration")
+
+        # If writing to an external volume path, seed it from the image's default config.
+        if SERVICE_CONFIG_PATH != DEFAULT_CONFIG_PATH and os.path.exists(DEFAULT_CONFIG_PATH):
+            try:
+                with open(DEFAULT_CONFIG_PATH, 'r', encoding='utf-8') as f:
+                    seeded_config = json.load(f)
+                save_service_config(seeded_config)
+                return seeded_config
+            except json.JSONDecodeError:
+                print(f"Warning: bundled default config at {DEFAULT_CONFIG_PATH} is invalid JSON")
+
+        fallback_config = _default_service_config()
+        save_service_config(fallback_config)
+        return fallback_config
     except json.JSONDecodeError as e:
-        print(f"Error parsing services.json: {e}")
-        return {
-            "categories": {
-                "Other": {
-                    "icon": "🐳",
-                    "name": "Other"
-                }
-            },
-            "services": {},
-            "defaults": {
-                "name": "Docker service",
-                "description": "Docker service",
-                "icon": "🐳", 
-                "category": "Other"
-            }
-        }
+        print(f"Error parsing {SERVICE_CONFIG_PATH}: {e}")
+        fallback_config = _default_service_config()
+        save_service_config(fallback_config)
+        return fallback_config
 
 def save_service_config(config):
     """Save service configuration to JSON file"""
-    with open('services.json', 'w', encoding='utf-8') as f:
+    config_dir = os.path.dirname(SERVICE_CONFIG_PATH)
+    if config_dir:
+        os.makedirs(config_dir, exist_ok=True)
+    with open(SERVICE_CONFIG_PATH, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
 # --- API endpoints for CRUD ---
