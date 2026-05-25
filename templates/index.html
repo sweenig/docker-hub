@@ -52,7 +52,7 @@
                             
                             <div class="services-grid">
                                 {% for service in category_services %}
-                                    <div class="service-card" onclick="onServiceCardClick(event, '{{ service.url }}')">
+                                    <div class="service-card" onclick='onServiceCardClick(event, {{ service.url|tojson }})'>
                                         <div class="service-left">
                                             <div class="service-icon">{{ service.icon }}</div>
                                             <div class="service-info">
@@ -96,7 +96,7 @@
                     
                     <div class="services-grid">
                         {% for service in other_services %}
-                            <div class="service-card" onclick="onServiceCardClick(event, '{{ service.url }}')">
+                            <div class="service-card" onclick='onServiceCardClick(event, {{ service.url|tojson }})'>
                                 <div class="service-left">
                                     <div class="service-icon">{{ service.icon }}</div>
                                     <div class="service-info">

@@ -81,17 +81,41 @@ async function showServiceForm(name = '', svc = {}) {
             <input type="hidden" name="key" value="${keyVal}">
             <input type="hidden" name="port" value="${portVal}">
             <div class="service-key">
-                <label>Container key: <input class="key-display" value="${keyVal}" disabled></label>
-                <label class="service-port">Host port: <input class="key-display" value="${portVal}" disabled></label>
+                <div class="form-row">
+                    <label>Container key:</label>
+                    <input class="key-display" value="${keyVal}" disabled>
+                </div>
+                <div class="form-row service-port">
+                    <label>Host port:</label>
+                    <input class="key-display" value="${portVal}" disabled>
+                </div>
             </div>
-            <label>Display Name: <input name="name" value="${svc.name || ''}" required></label><br>
-            <label>Description: <input name="description" value="${svc.description || ''}"></label><br>
-            <label>Icon: <input name="icon" value="${svc.icon || ''}"></label><br>
-            <label>Category: 
+            <div class="form-row">
+                <label>Display Name:</label>
+                <input name="name" value="${svc.name || ''}" required>
+            </div>
+            <div class="form-row">
+                <label>Description:</label>
+                <input name="description" value="${svc.description || ''}">
+            </div>
+            <div class="form-row">
+                <label>Icon:</label>
+                <input name="icon" value="${svc.icon || ''}">
+            </div>
+            <div class="form-row checkbox-row">
+                <input type="checkbox" name="use_ssl" id="use_ssl" ${svc.use_ssl ? 'checked' : ''}>
+                <label for="use_ssl">Use SSL</label>
+            </div>
+            <div class="form-row">
+                <label>Root Path:</label>
+                <input name="root_path" value="${svc.root_path || ''}" placeholder="/admin">
+            </div>
+            <div class="form-row">
+                <label>Category:</label>
                 <select name="category" required>
                     ${categoryOptions}
                 </select>
-            </label><br>
+            </div>
             <button type="submit">Save</button>
             <button type="button" onclick="cancelServiceForm()">Cancel</button>
             <button type="button" class="exclude-button" onclick="excludeServiceFromForm(this)">Exclude</button>
@@ -190,6 +214,8 @@ function submitServiceForm(e, oldName) {
         name: displayName,
         description: form.description.value,
         icon: form.icon.value,
+        use_ssl: !!(form.use_ssl && form.use_ssl.checked),
+        root_path: form.root_path.value,
         category: form.category.value
     };
     const keyField = form.key ? form.key.value : '';
@@ -202,6 +228,8 @@ function submitServiceForm(e, oldName) {
     }).then(() => {
         loadServices();
         cancelServiceForm();
+        // Refresh dashboard cards so edited service metadata is reflected immediately.
+        window.location.reload();
     });
 }
 
@@ -239,6 +267,8 @@ function openEditServiceModal(event, svc) {
                     name: svc.name || key || '',
                     description: svc.description || '',
                     icon: svc.icon || '',
+                    use_ssl: !!svc.use_ssl,
+                    root_path: svc.root_path || '',
                     category: svc.category || ''
                 };
                 showServiceForm('', prefill);

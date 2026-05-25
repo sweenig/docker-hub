@@ -20,6 +20,7 @@ The application uses `services.json` to configure service information. Users can
 - Change service names and descriptions
 - Customize service icons
 - Organize services into custom categories
+- Add an optional root path such as `/admin` for services hosted below the port root
 - Add new services
 
 #### JSON Structure
@@ -37,6 +38,7 @@ The application uses `services.json` to configure service information. Users can
       "name": "Display Name",
       "description": "Service description",
       "icon": "📊",
+      "root_path": "/admin",
       "category": "Category Name"
     }
   },
@@ -69,6 +71,13 @@ The application uses `services.json` to configure service information. Users can
       "description": "Container Advisor - Resource monitoring and performance analysis",
       "icon": "📊",
       "category": "Monitoring"
+    },
+    "pihole": {
+      "name": "Pi-hole",
+      "description": "Network-wide ad blocker",
+      "icon": "🛡️",
+      "root_path": "/admin",
+      "category": "Custom Apps"
     },
     "my-custom-app": {
       "name": "My Custom App",
@@ -161,6 +170,7 @@ docker-hub/
      "name": "Friendly Name",
      "description": "What this service does",
      "icon": "🎯",
+     "root_path": "/admin",
      "category": "Your Category"
    }
    ```

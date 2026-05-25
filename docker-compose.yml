@@ -1,6 +1,6 @@
 services:
   flask-hub:
-    # build: .
+    build: .
     image: sweenig/docker_hub:latest
     container_name: flask-hub
     ports:

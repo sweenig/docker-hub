@@ -12,6 +12,44 @@ DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '
 SERVICE_CONFIG_PATH = os.getenv('SERVICE_CONFIG_PATH', DEFAULT_CONFIG_PATH)
 
 
+def normalize_root_path(root_path):
+    """Normalize an optional service root path for URL joining."""
+    if root_path is None:
+        return ''
+
+    normalized = str(root_path).strip()
+    if not normalized:
+        return ''
+
+    return '/' + normalized.lstrip('/')
+
+
+def normalize_use_ssl(use_ssl):
+    """Normalize persisted use_ssl values to a strict boolean."""
+    if isinstance(use_ssl, bool):
+        return use_ssl
+
+    if isinstance(use_ssl, (int, float)):
+        return bool(use_ssl)
+
+    if isinstance(use_ssl, str):
+        return use_ssl.strip().lower() in ('1', 'true', 'yes', 'on')
+
+    return False
+
+
+def build_service_url(base_url, use_ssl, root_path):
+    """Build final service URL with optional protocol override and root path."""
+    resolved_url = base_url
+    if use_ssl:
+        if base_url.startswith('//'):
+            resolved_url = f"https:{base_url}"
+        elif base_url.startswith('http://'):
+            resolved_url = f"https://{base_url[len('http://'):] }"
+
+    return f"{resolved_url}{root_path}"
+
+
 def _default_service_config():
     return {
         "categories": {
@@ -143,6 +181,8 @@ def api_add_service():
     data_to_store = data.copy()
     if 'key' in data_to_store:
         del data_to_store['key']
+    data_to_store['root_path'] = normalize_root_path(data_to_store.get('root_path'))
+    data_to_store['use_ssl'] = normalize_use_ssl(data_to_store.get('use_ssl'))
     config['services'][key] = data_to_store
     save_service_config(config)
     return jsonify({'success': True, 'service': data_to_store, 'key': key})
@@ -150,9 +190,11 @@ def api_add_service():
 @app.route('/api/services/<name>', methods=['PUT'])
 def api_update_service(name):
     config = load_service_config()
-    data = request.json
+    data = request.json or {}
     if name not in config['services']:
         return jsonify({'error': 'Service not found'}), 404
+    data['root_path'] = normalize_root_path(data.get('root_path'))
+    data['use_ssl'] = normalize_use_ssl(data.get('use_ssl'))
     config['services'][name] = data
     save_service_config(config)
     return jsonify({'success': True, 'service': data})
@@ -282,13 +324,18 @@ def get_service_info(container_name):
     services = config.get('services', {})
     # If not found, return a special marker for uncategorized
     if container_name in services:
-        return services[container_name]
+        service_info = services[container_name].copy()
+        service_info['root_path'] = normalize_root_path(service_info.get('root_path'))
+        service_info['use_ssl'] = normalize_use_ssl(service_info.get('use_ssl'))
+        return service_info
     else:
         return {
             'name': container_name,
             'description': 'Categorize this service in settings',
             'icon': '🐳',
             'category': 'Other',
+            'root_path': '',
+            'use_ssl': False,
             'uncategorized': True
         }
 
@@ -315,7 +362,13 @@ def index():
                     'description': service_info['description'],
                     'icon': service_info['icon'],
                     'category': service_info['category'],
-                    'url': port_info['url'],
+                    'root_path': service_info.get('root_path', ''),
+                    'use_ssl': service_info.get('use_ssl', False),
+                    'url': build_service_url(
+                        port_info['url'],
+                        service_info.get('use_ssl', False),
+                        service_info.get('root_path', '')
+                    ),
                     'host_port': port_info['host_port'],
                     'container_port': port_info['container_port'],
                     'status': container.get('Status', 'Unknown'),
