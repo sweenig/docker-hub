@@ -25,7 +25,8 @@ function showTab(tab) {
     });
     document.getElementById('settings-categories').style.display = (tab === 'categories') ? 'block' : 'none';
     document.getElementById('settings-general').style.display = (tab === 'general') ? 'block' : 'none';
-    if (tab === 'general') {
+    document.getElementById('settings-ports').style.display = (tab === 'ports') ? 'block' : 'none';
+    if (tab === 'general' || tab === 'ports') {
         loadSettings();
     }
 }
@@ -131,6 +132,14 @@ function loadSettings() {
             const settings = data.settings || {};
             const excluded = data.excludedServices || [];
             document.getElementById('appTitleInput').value = settings.appTitle || '';
+            const startInput = document.getElementById('portRangeStartInput');
+            const endInput = document.getElementById('portRangeEndInput');
+            if (startInput) {
+                startInput.value = settings.portRangeStart || '';
+            }
+            if (endInput) {
+                endInput.value = settings.portRangeEnd || '';
+            }
             renderExcludedList(excluded);
         });
 }
@@ -144,6 +153,43 @@ function submitAppTitle() {
     }).then(() => {
         alert('App title saved. Reload page to see changes if env not overriding.');
     });
+}
+
+function submitPortRange() {
+    const startRaw = document.getElementById('portRangeStartInput').value;
+    const endRaw = document.getElementById('portRangeEndInput').value;
+    const start = parseInt(startRaw, 10);
+    const end = parseInt(endRaw, 10);
+
+    if (Number.isNaN(start) || Number.isNaN(end)) {
+        alert('Please enter both range start and range end.');
+        return;
+    }
+
+    if (start < 1 || end > 65535 || start > end) {
+        alert('Invalid range. Use values between 1 and 65535, and make sure start is not greater than end.');
+        return;
+    }
+
+    fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portRangeStart: start, portRangeEnd: end })
+    })
+        .then(async (res) => {
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.error || 'Failed to save port range.');
+            }
+            return res.json();
+        })
+        .then(() => {
+            alert('Port range saved. Reloading dashboard...');
+            window.location.reload();
+        })
+        .catch((err) => {
+            alert(err.message || 'Failed to save port range.');
+        });
 }
 
 function renderExcludedList(list) {

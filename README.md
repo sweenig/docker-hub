@@ -8,6 +8,7 @@ A Flask web application that provides a beautiful, futuristic interface for mana
 - 🎨 **Futuristic Dark UI**: Modern, responsive design with dark mode
 - 📊 **Service Categorization**: Organize services into custom categories
 - 🔧 **Service Exclusion**: Hide services in an "Other Services" section
+- 🔌 **Port Range Helper**: Configure a range and show the first free host port
 - 📱 **Responsive Design**: Works on desktop and mobile devices
 - 🔄 **Auto-refresh**: Automatically refreshes every 30 seconds
 
@@ -22,6 +23,7 @@ The application uses `services.json` to configure service information. Users can
 - Organize services into custom categories
 - Add an optional root path such as `/admin` for services hosted below the port root
 - Add new services
+- Configure a host-port range used to suggest the first available port
 
 #### JSON Structure
 
@@ -102,6 +104,15 @@ The application uses `services.json` to configure service information. Users can
 | `APPTITLE` | Web page title | "Docker Services Hub" |
 | `EXCLUDED_SERVICES` | Comma-separated list of container names and/or container:port pairs to exclude. If a container name is listed, all its ports are excluded. If a container:port is listed, only that port is excluded. | "" |
 | `FLASK_ENV` | Flask environment (development/production) | "development" |
+
+### Settings: Port Range
+
+In Settings -> Ports, set:
+
+- `Range Start`
+- `Range End`
+
+The left sidebar then shows the first not-used host port in that range. If all ports are used, it shows `-`.
 
 #### Excluding Services and Ports
 

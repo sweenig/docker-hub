@@ -50,6 +50,35 @@ def build_service_url(base_url, use_ssl, root_path):
     return f"{resolved_url}{root_path}"
 
 
+def normalize_port_range(start, end):
+    """Normalize and validate a configured port range."""
+    if start is None or end is None:
+        return (None, None)
+
+    try:
+        start_int = int(start)
+        end_int = int(end)
+    except (TypeError, ValueError):
+        return (None, None)
+
+    if start_int < 1 or end_int > 65535 or start_int > end_int:
+        return (None, None)
+
+    return (start_int, end_int)
+
+
+def find_first_available_port(range_start, range_end, used_ports):
+    """Return the first port in range that is not used, otherwise None."""
+    if range_start is None or range_end is None:
+        return None
+
+    for port in range(range_start, range_end + 1):
+        if port not in used_ports:
+            return port
+
+    return None
+
+
 def _default_service_config():
     return {
         "categories": {
@@ -278,6 +307,16 @@ def api_update_settings():
     # Update appTitle if provided
     if 'appTitle' in data:
         settings['appTitle'] = data.get('appTitle')
+    if 'portRangeStart' in data or 'portRangeEnd' in data:
+        current_start = settings.get('portRangeStart')
+        current_end = settings.get('portRangeEnd')
+        requested_start = data.get('portRangeStart', current_start)
+        requested_end = data.get('portRangeEnd', current_end)
+        normalized_start, normalized_end = normalize_port_range(requested_start, requested_end)
+        if normalized_start is None or normalized_end is None:
+            return jsonify({'error': 'Invalid port range. Use values between 1 and 65535 with start <= end.'}), 400
+        settings['portRangeStart'] = normalized_start
+        settings['portRangeEnd'] = normalized_end
     config['settings'] = settings
     save_service_config(config)
     return jsonify({'success': True, 'settings': settings})
@@ -343,6 +382,7 @@ def get_service_info(container_name):
 def index():
     containers = get_docker_containers()
     services = []
+    used_ports = set()
     
     print(f"Processing {len(containers)} containers")
     
@@ -356,6 +396,11 @@ def index():
             service_info = get_service_info(container_name)
             
             for port_info in ports:
+                try:
+                    used_ports.add(int(port_info['host_port']))
+                except (TypeError, ValueError):
+                    pass
+
                 service_data = {
                     'name': service_info['name'],
                     'container_name': container_name,
@@ -442,6 +487,13 @@ def index():
     
     # Determine app title: env var overrides persisted setting
     app_title = os.environ.get('APPTITLE') or config.get('settings', {}).get('appTitle') or 'Docker Services Hub'
+    settings = config.get('settings', {})
+    configured_start, configured_end = normalize_port_range(
+        settings.get('portRangeStart'),
+        settings.get('portRangeEnd')
+    )
+    first_available_port = find_first_available_port(configured_start, configured_end, used_ports)
+
     return render_template(
         'index.html',
         categories=categories,
@@ -450,7 +502,10 @@ def index():
         app_title=app_title,
         other_services=other_services,
         category_config=category_config,
-        category_order=category_order
+        category_order=category_order,
+        first_available_port=first_available_port,
+        configured_port_range_start=configured_start,
+        configured_port_range_end=configured_end
     )
 
 @app.route('/health')

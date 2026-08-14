@@ -25,6 +25,17 @@
                     <div class="stat-number">{{ containers|length if containers else 0 }}</div>
                     <div class="stat-label">Total Containers</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ first_available_port if first_available_port is not none else '-' }}</div>
+                    <div class="stat-label">First Free Port</div>
+                    <div class="stat-note">
+                        {% if configured_port_range_start is not none and configured_port_range_end is not none %}
+                            {{ configured_port_range_start }}-{{ configured_port_range_end }}
+                        {% else %}
+                            Configure range in Settings
+                        {% endif %}
+                    </div>
+                </div>
             </div>
 
             <button class="settings-btn" onclick="openSettingsDialog()" title="Settings">
@@ -130,6 +141,7 @@
             <div id="settings-tabs">
                 <button onclick="showTab('general')">General</button>
                 <button onclick="showTab('categories')">Categories</button>
+                <button onclick="showTab('ports')">Ports</button>
             </div>
             <div id="settings-categories" class="settings-tab">
                 <h3>Categories</h3>
@@ -147,6 +159,15 @@
                 </div>
                 <h4>Excluded Services</h4>
                 <div id="excluded-list"></div>
+            </div>
+            <div id="settings-ports" class="settings-tab" style="display:none;">
+                <h3>Ports</h3>
+                <div id="ports-form">
+                    <label>Range Start: <input id="portRangeStartInput" type="number" min="1" max="65535" placeholder="30000"></label>
+                    <label>Range End: <input id="portRangeEndInput" type="number" min="1" max="65535" placeholder="40000"></label>
+                    <button onclick="submitPortRange()">Save Range</button>
+                </div>
+                <p class="ports-help">The dashboard shows the first free host port in this range.</p>
             </div>
         </div>
     </div>
