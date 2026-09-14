@@ -79,6 +79,53 @@ def find_first_available_port(range_start, range_end, used_ports):
     return None
 
 
+def normalize_manual_ports(ports):
+    """Normalize a user-supplied ports override to a sorted list of valid ints."""
+    if not isinstance(ports, list):
+        return []
+
+    normalized = set()
+    for port in ports:
+        try:
+            port_int = int(port)
+        except (TypeError, ValueError):
+            continue
+        if 1 <= port_int <= 65535:
+            normalized.add(port_int)
+
+    return sorted(normalized)
+
+
+def get_exposed_ports(container_id):
+    """Return declared TCP EXPOSE ports for a container.
+
+    docker ps reports no port mappings for host-network containers (there's no
+    publish/NAT rule to show), so this falls back to the image's declared
+    EXPOSE ports to guess what the container is actually listening on.
+    """
+    try:
+        result = subprocess.run(
+            ['docker', 'inspect', container_id, '--format', '{{json .Config.ExposedPorts}}'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode != 0:
+            return []
+
+        ports_map = json.loads(result.stdout.strip() or 'null') or {}
+        ports = set()
+        for key in ports_map:
+            proto_port = key.split('/', 1)
+            if len(proto_port) == 2 and proto_port[1] == 'tcp' and proto_port[0].isdigit():
+                ports.add(int(proto_port[0]))
+
+        return sorted(ports)
+    except Exception as e:
+        print(f"Error inspecting exposed ports for {container_id}: {e}")
+        return []
+
+
 def _default_service_config():
     return {
         "categories": {
@@ -389,38 +436,59 @@ def index():
     for container in containers:
         container_name = container.get('Names', '').replace('/', '')
         ports = extract_ports(container.get('Ports', ''))
-        
+        is_host_network = container.get('Networks') == 'host'
+
         print(f"Container: {container_name}, Ports: {ports}")
-        
-        if ports:  # Only include containers with exposed ports
-            service_info = get_service_info(container_name)
-            
-            for port_info in ports:
+
+        if not ports and not is_host_network:
+            continue
+
+        service_info = get_service_info(container_name)
+
+        if not ports and is_host_network:
+            # docker ps has no port mapping to report for host-network containers,
+            # since they bind directly to the host's interfaces with no publish/NAT
+            # rule. Fall back to a manual override, then the image's declared EXPOSE
+            # ports, so these containers aren't silently dropped from the dashboard.
+            manual_ports = normalize_manual_ports(service_info.get('ports'))
+            candidate_ports = manual_ports or get_exposed_ports(container.get('ID', container_name))
+            host = request.host.split(':')[0]
+            if candidate_ports:
+                ports = [
+                    {'host_port': str(port), 'container_port': str(port), 'url': f"//{host}:{port}"}
+                    for port in candidate_ports
+                ]
+            else:
+                ports = [{'host_port': None, 'container_port': None, 'url': None}]
+
+        for port_info in ports:
+            if port_info['host_port'] is not None:
                 try:
                     used_ports.add(int(port_info['host_port']))
                 except (TypeError, ValueError):
                     pass
 
-                service_data = {
-                    'name': service_info['name'],
-                    'container_name': container_name,
-                    'description': service_info['description'],
-                    'icon': service_info['icon'],
-                    'category': service_info['category'],
-                    'root_path': service_info.get('root_path', ''),
-                    'use_ssl': service_info.get('use_ssl', False),
-                    'url': build_service_url(
-                        port_info['url'],
-                        service_info.get('use_ssl', False),
-                        service_info.get('root_path', '')
-                    ),
-                    'host_port': port_info['host_port'],
-                    'container_port': port_info['container_port'],
-                    'status': container.get('Status', 'Unknown'),
-                    'created': container.get('CreatedAt', 'Unknown')
-                }
-                services.append(service_data)
-                print(f"Added service: {service_data['name']} at {service_data['url']}")
+            service_data = {
+                'name': service_info['name'],
+                'container_name': container_name,
+                'description': service_info['description'],
+                'icon': service_info['icon'],
+                'category': service_info['category'],
+                'root_path': service_info.get('root_path', ''),
+                'use_ssl': service_info.get('use_ssl', False),
+                'url': build_service_url(
+                    port_info['url'],
+                    service_info.get('use_ssl', False),
+                    service_info.get('root_path', '')
+                ) if port_info['url'] else None,
+                'host_port': port_info['host_port'],
+                'container_port': port_info['container_port'],
+                'status': container.get('Status', 'Unknown'),
+                'created': container.get('CreatedAt', 'Unknown'),
+                'host_network': is_host_network
+            }
+            services.append(service_data)
+            print(f"Added service: {service_data['name']} at {service_data['url']}")
     
     print(f"Total services found: {len(services)}")
     

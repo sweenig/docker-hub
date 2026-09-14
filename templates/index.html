@@ -69,6 +69,9 @@
                                             <div class="service-info">
                                                 <div class="service-name">
                                                     {{ service.name }}
+                                                    {% if service.host_network %}
+                                                        <span class="host-network-badge" title="This container uses host networking; docker can't report a port mapping, so the port shown comes from EXPOSE or a manual override in settings.">host network</span>
+                                                    {% endif %}
                                                     {% if service.uncategorized %}
                                                         <span class="uncategorized-label">&mdash; <a href="#" onclick="openSettingsDialog();return false;">Categorize this service in settings</a></span>
                                                     {% endif %}
@@ -76,13 +79,13 @@
                                                 <div class="service-description">{{ service.description }}</div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="service-details">
                                             <div class="service-status">
                                                 <span class="status-indicator"></span>
                                                 {{ service.status }}
                                             </div>
-                                            <span>Port: {{ service.host_port }}</span>
+                                            <span>Port: {{ service.host_port if service.host_port is not none else 'not detected' }}</span>
                                             <button class="edit-service-btn" data-service='{{ service|tojson }}' onclick='openEditServiceModalFromDataset(event, this)' title="Edit service">✎</button>
                                         </div>
                                     </div>
@@ -111,17 +114,22 @@
                                 <div class="service-left">
                                     <div class="service-icon">{{ service.icon }}</div>
                                     <div class="service-info">
-                                        <div class="service-name">{{ service.name }}</div>
+                                        <div class="service-name">
+                                            {{ service.name }}
+                                            {% if service.host_network %}
+                                                <span class="host-network-badge" title="This container uses host networking; docker can't report a port mapping, so the port shown comes from EXPOSE or a manual override in settings.">host network</span>
+                                            {% endif %}
+                                        </div>
                                         <div class="service-description">{{ service.description }}</div>
                                     </div>
                                 </div>
-                                
+
                                     <div class="service-details">
                                     <div class="service-status">
                                         <span class="status-indicator"></span>
                                         {{ service.status }}
                                     </div>
-                                    <span>Port: {{ service.host_port }}</span>
+                                    <span>Port: {{ service.host_port if service.host_port is not none else 'not detected' }}</span>
                                     <button class="edit-service-btn" data-service='{{ service|tojson }}' onclick='openEditServiceModalFromDataset(event, this)' title="Edit service">✎</button>
                                 </div>
                             </div>

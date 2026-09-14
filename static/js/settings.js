@@ -112,6 +112,10 @@ async function showServiceForm(name = '', svc = {}) {
                 <input name="root_path" value="${svc.root_path || ''}" placeholder="/admin">
             </div>
             <div class="form-row">
+                <label>Ports (host network only):</label>
+                <input name="ports" value="${(svc.ports || []).join(', ')}" placeholder="5050, 8080">
+            </div>
+            <div class="form-row">
                 <label>Category:</label>
                 <select name="category" required>
                     ${categoryOptions}
@@ -256,12 +260,17 @@ function submitServiceForm(e, oldName) {
     e.preventDefault();
     const form = e.target;
     const displayName = form.name.value;
+    const ports = (form.ports ? form.ports.value : '')
+        .split(',')
+        .map(p => parseInt(p.trim(), 10))
+        .filter(p => !Number.isNaN(p) && p >= 1 && p <= 65535);
     const svc = {
         name: displayName,
         description: form.description.value,
         icon: form.icon.value,
         use_ssl: !!(form.use_ssl && form.use_ssl.checked),
         root_path: form.root_path.value,
+        ports: ports,
         category: form.category.value
     };
     const keyField = form.key ? form.key.value : '';

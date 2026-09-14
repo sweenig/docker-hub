@@ -666,6 +666,20 @@ body {
     background: #00d4ff;
     color: #fff;
 }
+.host-network-badge {
+    display: inline-block;
+    color: #00d4ff;
+    border: 1px solid rgba(0,212,255,0.35);
+    border-radius: 4px;
+    font-size: 0.7em;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 1px 6px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
 .uncategorized-label {
     color: #ff6b6b;
     font-size: 0.95em;

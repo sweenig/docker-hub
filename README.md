@@ -105,6 +105,20 @@ The application uses `services.json` to configure service information. Users can
 | `EXCLUDED_SERVICES` | Comma-separated list of container names and/or container:port pairs to exclude. If a container name is listed, all its ports are excluded. If a container:port is listed, only that port is excluded. | "" |
 | `FLASK_ENV` | Flask environment (development/production) | "development" |
 
+### Host-Network Containers
+
+Containers running with `network_mode: host` don't get a port mapping from Docker (there's no publish/NAT rule to report), so they'd otherwise be invisible on the dashboard. For these, the app falls back to the port(s) declared by the image's `EXPOSE` instruction (via `docker inspect`). If a container doesn't declare `EXPOSE`, or you want to override the detected port, set a `ports` array on its entry in `services.json` (or via the service edit dialog):
+
+```json
+"portal-manager-webui": {
+  "name": "Portal Manager",
+  "ports": [5050],
+  "category": "Management"
+}
+```
+
+A host-network container with no detectable and no configured port still appears (marked "host network", with "Port: not detected") instead of disappearing, so it can be edited/excluded from the UI.
+
 ### Settings: Port Range
 
 In Settings -> Ports, set:
