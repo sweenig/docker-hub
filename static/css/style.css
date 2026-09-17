@@ -4,6 +4,11 @@
     box-sizing: border-box;
 }
 
+html {
+    overflow-x: hidden;
+    width: 100%;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
@@ -37,7 +42,7 @@ body {
 }
 
 .header h1 {
-    font-size: 1.8rem;
+    font-size: clamp(1.3rem, 5vw, 1.8rem);
     font-weight: 300;
     background: linear-gradient(45deg, #00d4ff, #ff6b6b, #4ecdc4);
     background-size: 200% 200%;
@@ -56,8 +61,8 @@ body {
 }
 
 .stats {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 15px;
 }
 
@@ -69,6 +74,7 @@ body {
     padding: 20px;
     text-align: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-width: 0;
 }
 
 .stat-card:hover {
@@ -92,10 +98,12 @@ body {
     color: #8f98ad;
     font-size: 0.75rem;
     margin-top: 6px;
+    overflow-wrap: anywhere;
 }
 
 .categories {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 30px;
 }
 
@@ -128,12 +136,15 @@ body {
 .category-icon {
     font-size: 2rem;
     margin-right: 15px;
+    flex-shrink: 0;
 }
 
 .category-title {
     font-size: 1.5rem;
     font-weight: 600;
     color: #ffffff;
+    min-width: 0;
+    overflow-wrap: break-word;
 }
 
 .services-grid {
@@ -202,6 +213,8 @@ body {
     font-weight: 600;
     color: #ffffff;
     margin-right: 15px;
+    min-width: 0;
+    overflow-wrap: break-word;
 }
 
 .service-description {
@@ -211,7 +224,8 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 300px;
+    flex: 1;
+    min-width: 0;
 }
 
 .service-details {
@@ -323,7 +337,7 @@ body {
 .modal-content {
     background: linear-gradient(135deg, #181818 0%, #1a1a2e 100%);
     margin: 5% auto;
-    padding: 30px 40px;
+    padding: clamp(16px, 5vw, 30px) clamp(16px, 6vw, 40px);
     border-radius: 16px;
     width: 90%;
     max-width: 600px;
@@ -708,23 +722,11 @@ body {
     .sidebar {
         width: 100%;
     }
-    
-    .header h1 {
-        font-size: 2.5rem;
-        margin-bottom: 25px;
-    }
-    
-    .stats {
-        flex-direction: row;
-        justify-content: center;
-        gap: 15px;
-    }
-    
+
     .stat-card {
-        min-width: 120px;
         padding: 15px;
     }
-    
+
     .service-card {
         flex-direction: column;
         align-items: flex-start;
