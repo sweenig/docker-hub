@@ -527,7 +527,12 @@ def index():
     for service in services:
         cname = service['container_name']
         hport = str(service.get('host_port', ''))
-        if (cname, hport) in excluded_container_ports:
+        if service.get('host_port') is None:
+            # No port could be detected (host-network container with no manual
+            # override or EXPOSE metadata) - surface it under Other Services
+            # instead of a normal category, since there's no port to link to.
+            other_services.append(service)
+        elif (cname, hport) in excluded_container_ports:
             other_services.append(service)
         elif cname in excluded_containers:
             other_services.append(service)
